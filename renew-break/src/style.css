@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Nunito", serif, Helvetica, Arial;
   line-height: 1.5;
   font-weight: 400;
 
@@ -7,10 +9,7 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -34,28 +33,44 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
+h2 {
+  margin: 0 auto;
+}
 
-button {
+button, select {
+  width: 100px;
+  background: #3d464b;
+  color: white;
+  border: solid 1px transparent;
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-family: "Nunito", serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s ease;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: white;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+select {
+  appearance: none; /* Removes default arrow */
+}
+select:focus {
+  outline: none;
+}
+select:hover {
+  border-color: white
+}
+button:active {
+  transform: scale(0.98);
 }
 
 .card {
-  padding: 2em;
+  padding: 2.5em;
+  border: solid 2px gray;
+  border-radius: 12px;
 }
 
 #app {

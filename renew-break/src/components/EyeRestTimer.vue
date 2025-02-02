@@ -15,12 +15,12 @@
         </section>
 
         <div class="controls">
-            <button @click="reset">Reset</button>
-            <button @click="startPause">{{ isRunning ? 'Pause' : 'Start' }}</button>
+            <button class="reset-btn" @click="reset">Reset</button>
+            <button class="start-btn" :class="{ 'pause' : isRunning }" @click="startPause">
+                {{ isRunning ? 'Pause' : 'Start' }}
+            </button>
             <select v-model="setMinutes" @change="set">
-                <option v-for="value in [20, 30, 40, 50, 60]" 
-                        :key="value" 
-                        :value="value">
+                <option v-for="value in [20, 30, 40, 50, 60]" :key="value" :value="value">
                     {{ value }} min
                 </option>
             </select>
@@ -95,39 +95,25 @@
 </script>
 
 <style scoped>
-* {
-    /* border: solid 1px gray; */
-    font-weight: 500;
-}
-
-.card {
-    border: solid 2px gray;
-    border-radius: 12px;
-}
-
-h2 {
-    font-weight: 700;
-    margin: 12px auto;
-}
-
 .timer {
     font-size: 4rem;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin: 24px auto 36px;
   }
-  
   .display-time {
+    font-weight: 500;
     position: relative;
     margin: 12px 6px;
   }
   .separator {
-    margin-top: -0.5rem;
+    margin-top: -0.75rem;
   }
-  
   .time-label {
     font-size: 1.25rem;
-    color: #E0E0E0;
+    font-weight: 600;
+    color: #e0e0e0;
     margin-top: -1rem;
   }
 
@@ -135,25 +121,13 @@ h2 {
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin: 20px auto;
 }
-button, select {
-    width: 100px;
-    background: transparent;
-    border: solid 1px #CEEDC7;
-    border-radius: 8px;
-    font-size: 1.25rem;
-    font-weight: 600;
-    text-align: center;
-    margin: 20px auto 0;
-    padding: 12px;
-    cursor: pointer;
+.start-btn {
+    color: #e2ffdb;
+    background-color: #19570a;
 }
-select {
-    font-family: "Nunito", serif;
-    appearance: none; /* Removes default arrow */
-}
-button, select:focus {
-    outline: none;
+.start-btn.pause {
+    color: #fff6Bd;
+    background-color: #615100;
 }
 </style>
