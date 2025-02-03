@@ -19,11 +19,6 @@
             <button class="start-btn" :class="{ 'pause' : isRunning }" @click="startPause">
                 {{ isRunning ? 'Pause' : 'Start' }}
             </button>
-            <select v-model="setMinutes" @change="set">
-                <option v-for="value in [20, 30, 40, 50, 60]" :key="value" :value="value">
-                    {{ value }} min
-                </option>
-            </select>
         </div>
     </div>
 </template>
@@ -80,19 +75,6 @@
         minutes.value = setMinutes.value
         seconds.value = 0
         isRunning.value = false
-        startTime.value = 0
-        pausedTime.value = 0
-        totalPausedTime.value = 0
-    }
-
-    const set = () => {
-        minutes.value = setMinutes.value
-        seconds.value = 0
-        // Timer stops and resets if a new minutes is set while running
-        if (isRunning.value) {
-            clearInterval(intervalId.value)
-            isRunning.value = false
-        }
         startTime.value = 0
         pausedTime.value = 0
         totalPausedTime.value = 0
