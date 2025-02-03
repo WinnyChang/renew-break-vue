@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, onBeforeUnmount } from 'vue'
+    import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
     
     const setMinutes = ref(20)  // Default time
     const minutes = ref(setMinutes.value)
@@ -35,6 +35,8 @@
     const startTime = ref(0)
     const pausedTime = ref(0)
     const totalPausedTime = ref(0)
+
+    const notificationPermission = ref(false)
 
     // Main timer function
     const startPause = () => {
@@ -60,6 +62,7 @@
                 if (remainingSeconds === 0) {
                     isRunning.value = false
                     clearInterval(intervalId.value)
+                    showNotification()
                     reset()   // Auto reset
                     return
                 }
@@ -90,6 +93,25 @@
     // Computed properties to format the display
     const displayMinutes = computed(() => minutes.value.toString().padStart(2, '0'));
     const displaySeconds = computed(() => seconds.value.toString().padStart(2, '0'));
+
+    // Request notification permission
+    const requestPermission = async () => {
+        if ("Notification" in window) {
+            const permission = await Notification.requestPermission()
+            notificationPermission.value = permission === "granted"
+        }
+    }
+    onMounted(() => {
+        requestPermission()
+    })
+    // Notify user when timer is up
+    const showNotification = () => {
+        if ("Notification" in window && notificationPermission.value) {
+            new Notification("Eye rest time!", {
+                body: `${setMinutes.value} minutes have passed. Time to rest your eyes!`
+            })
+        }
+    }
 </script>
 
 <style scoped>
