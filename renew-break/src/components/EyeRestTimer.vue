@@ -37,31 +37,41 @@
     const intervalId = ref(null)
     const isRunning = ref(false)
 
+    const startTime = ref(0)
+    const pausedTime = ref(0)
+    const totalPausedTime = ref(0)
+
     // Main timer function
     const startPause = () => {
         if (isRunning.value) {
             // Pause timer
             isRunning.value = false;
             clearInterval(intervalId.value);
+            pausedTime.value = Date.now();
         } else {
             // Start timer
             isRunning.value = true;
+            if (startTime.value === 0) {
+                startTime.value = Date.now()
+            } else if (pausedTime.value > 0) {
+                totalPausedTime.value += Date.now() - pausedTime.value
+            };
             intervalId.value = setInterval(() => {
-                if (seconds.value === 0) {
-                    // When reaches 00:00, stop the timer
-                    if (minutes.value === 0) {
-                        isRunning.value = false;
-                        clearInterval(intervalId.value)
-                        reset()   // Auto reset
-                        return
-                    }
-                    // When reaches MM:00 (MM > 00), decrease minutes and reset seconds
-                    minutes.value--
-                    seconds.value = 59
-                } else {  // Otherwise just decrease seconds
-                    seconds.value--
+                const currentTime = Date.now()
+                const totalSeconds = setMinutes.value * 60
+                const elapsedSeconds = Math.floor((currentTime - startTime.value - totalPausedTime.value) / 1000)
+                const remainingSeconds = Math.max(totalSeconds - elapsedSeconds, 0)
+                
+                if (remainingSeconds === 0) {
+                    isRunning.value = false
+                    clearInterval(intervalId.value)
+                    reset()   // Auto reset
+                    return
                 }
-            }, 1000)  // Run every 1000 ms (1 second)
+            
+                minutes.value = Math.floor(remainingSeconds / 60)
+                seconds.value = remainingSeconds % 60
+            }, 1000)
         }
     }
 
@@ -70,6 +80,9 @@
         minutes.value = setMinutes.value
         seconds.value = 0
         isRunning.value = false
+        startTime.value = 0
+        pausedTime.value = 0
+        totalPausedTime.value = 0
     }
 
     const set = () => {
@@ -80,6 +93,9 @@
             clearInterval(intervalId.value)
             isRunning.value = false
         }
+        startTime.value = 0
+        pausedTime.value = 0
+        totalPausedTime.value = 0
     }
 
     // Cleanup function that runs when component is destroyed
