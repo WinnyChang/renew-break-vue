@@ -1,6 +1,6 @@
 <template>
     <div class="card">
-        <h2>Eye Rest Timer</h2>
+        <h2>Stand Up Timer</h2>
 
         <section class="timer">
         <div class="display-time">
@@ -19,10 +19,11 @@
 <script setup>
     import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
     
-    const setMinutes = ref(20)  // Default time
+    const setMinutes = ref(50)  // Default time
     const minutes = ref(setMinutes.value)
     const seconds = ref(0)
     const intervalId = ref(null)
+    
     const props = defineProps({
         isRunning: {
             type: Boolean,
@@ -33,6 +34,7 @@
             required: true
         }
     })
+
     const startTime = ref(0)
     const pausedTime = ref(0)
     const totalPausedTime = ref(0)
@@ -119,6 +121,9 @@
 </script>
 
 <style scoped>
+* {
+    /* border: solid 1px gray; */
+}
 .timer {
     display: flex;
     justify-content: center;
