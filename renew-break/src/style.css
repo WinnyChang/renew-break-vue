@@ -35,8 +35,11 @@ h1 {
 h2 {
   margin: 0 auto;
 }
+h3 {
+  margin: 0 auto;
+}
 
-button, select {
+button{
   width: 145px;
   background: #3d464b;
   color: white;
@@ -55,6 +58,19 @@ button:hover {
 }
 select {
   appearance: none; /* Removes default arrow */
+  width: 200px;
+  background: #3d464b;
+  color: white;
+  border: solid 1.5px transparent;
+  border-radius: 80px;
+  font-family: "Nunito", serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px;
+  margin: 18px auto 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 select:focus {
   outline: none;

@@ -131,7 +131,7 @@
     margin: 0 6px;
   }
   .separator {
-    margin-top: -0.75rem;
+    margin-top: -1.5rem;
   }
   .time-label {
     font-size: 1.25rem;
