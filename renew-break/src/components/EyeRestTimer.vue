@@ -1,6 +1,13 @@
 <template>
-    <div class="card">
+    <div class="card" :class="{ 'disabled': selectedOption === 'off' }">
         <h2>Eye Rest Timer</h2>
+
+        <select v-model="selectedOption" @change="setTimes">
+            <option value="off">Off</option>
+            <option value="0.2">0.2 min</option>
+            <option value="20">20 min</option>
+            <option value="30">30 min</option>
+        </select>
 
         <section class="timer">
         <div class="display-time">
@@ -19,10 +26,12 @@
 <script setup>
     import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
     
-    const setMinutes = ref(20)  // Default time
+    const selectedOption = ref('20') // Default time (20 min)
+    const setMinutes = computed(() => selectedOption.value === 'off' ? 0 : Number(selectedOption.value))
     const minutes = ref(setMinutes.value)
     const seconds = ref(0)
     const intervalId = ref(null)
+
     const props = defineProps({
         isRunning: {
             type: Boolean,
@@ -31,43 +40,62 @@
         shouldReset: {
             type: Boolean,
             required: true
+        },
+        standupTimeRemaining: {  // Get remaining time from standup timer
+            type: Number,
+            required: true
         }
     })
+
     const startTime = ref(0)
     const pausedTime = ref(0)
     const totalPausedTime = ref(0)
-
     const notificationPermission = ref(false)
 
     // Main timer function
     watch(() => props.isRunning, (newValue) => {
-        if (newValue) {
+        if (newValue && selectedOption.value !== 'off') {
             // Start timer
             if (startTime.value === 0) {
                 startTime.value = Date.now()
             } else if (pausedTime.value > 0) {
                 totalPausedTime.value += Date.now() - pausedTime.value
+                pausedTime.value = 0
             };
-            intervalId.value = setInterval(() => {
+            let frameId
+            const updateTimer = () => {
                 const currentTime = Date.now()
                 const totalSeconds = setMinutes.value * 60
                 const elapsedSeconds = Math.floor((currentTime - startTime.value - totalPausedTime.value) / 1000)
                 const remainingSeconds = Math.max(totalSeconds - elapsedSeconds, 0)
                 
                 if (remainingSeconds === 0) {
-                    isRunning.value = false
-                    clearInterval(intervalId.value)
+                    // Reset timer display
+                    minutes.value = setMinutes.value
+                    seconds.value = 0
                     showNotification()
-                    reset()   // Auto reset
+                    if (props.standupTimeRemaining >= setMinutes.value * 60) {
+                        // Loop EyeRestTimer
+                        startTime.value = Date.now()
+                        totalPausedTime.value = 0
+                        frameId = requestAnimationFrame(updateTimer)
+                    } else {
+                        cancelAnimationFrame(frameId)
+                    }
                     return
                 }
             
                 minutes.value = Math.floor(remainingSeconds / 60)
                 seconds.value = remainingSeconds % 60
-            }, 1000)
+                frameId = requestAnimationFrame(updateTimer)
+            }
+            frameId = requestAnimationFrame(updateTimer)
+            intervalId.value = frameId
         } else {
             // Pause timer
-            clearInterval(intervalId.value);
+            if (intervalId.value) {
+                cancelAnimationFrame(intervalId.value)
+            }
             pausedTime.value = Date.now();
         }
     })
@@ -78,13 +106,33 @@
         }
     })
 
-    const reset = () => {
-        clearInterval(intervalId.value)
+    const resetTimerStates = () => {
         minutes.value = setMinutes.value
         seconds.value = 0
         startTime.value = 0
         pausedTime.value = 0
         totalPausedTime.value = 0
+    }
+
+    const reset = () => {
+        if (intervalId.value) {
+            cancelAnimationFrame(intervalId.value)
+        }
+        resetTimerStates()
+    }
+
+    const setTimes = () => {
+        if (selectedOption.value === 'off') {
+            minutes.value = null
+            seconds.value = null
+        } else {
+            minutes.value = setMinutes.value
+            seconds.value = 0
+        }
+        if (props.isRunning) {
+            cancelAnimationFrame(intervalId.value)
+        }
+        resetTimerStates()
     }
 
     // Cleanup function that runs when component is destroyed
@@ -95,8 +143,12 @@
     })
 
     // Computed properties to format the display
-    const displayMinutes = computed(() => minutes.value.toString().padStart(2, '0'));
-    const displaySeconds = computed(() => seconds.value.toString().padStart(2, '0'));
+    const displayMinutes = computed(() => 
+        selectedOption.value === 'off' ? '--' : minutes.value.toString().padStart(2, '0')
+    )
+    const displaySeconds = computed(() => 
+        selectedOption.value === 'off' ? '--' : seconds.value.toString().padStart(2, '0')
+    )
 
     // Request notification permission
     const requestPermission = async () => {
@@ -119,6 +171,10 @@
 </script>
 
 <style scoped>
+.disabled {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
 .timer {
     display: flex;
     justify-content: center;

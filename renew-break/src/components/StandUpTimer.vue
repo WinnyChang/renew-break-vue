@@ -39,7 +39,7 @@
     import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
     
     const timeOptions = [
-        [0.2, 0.1], [25, 5], [50, 10], [75, 15]
+        [0.5, 0.1], [25, 5], [50, 10], [75, 15]
     ]
 
     const selectedOption = ref(50)  // Default focus time (50 min)
@@ -73,6 +73,19 @@
 
     const notificationPermission = ref(false)
 
+    // Calculate remaining time from standup timer
+    const emit = defineEmits(['updateRemainingTime'])
+    const remainingTimeInSeconds = computed(() => {
+        if (!isBreakTime.value) {
+            return minutes.value * 60 + seconds.value
+        }
+        return 0 // Return 0 during break time
+    })
+    // Watch for changes in remaining time and emit
+    watch(remainingTimeInSeconds, (newValue) => {
+        emit('updateRemainingTime', newValue)
+    })
+
     // Timers function
     watch(() => props.isRunning, (newValue) => {
         if (newValue) {
@@ -81,8 +94,10 @@
                 startTime.value = Date.now()
             } else if (pausedTime.value > 0) {
                 totalPausedTime.value += Date.now() - pausedTime.value
+                pausedTime.value = 0
             };
-            intervalId.value = setInterval(() => {
+            let frameId
+            const updateTimer = () => {
                 const currentTime = Date.now()
                 const totalSeconds = isBreakTime.value ? 
                     setBreakMinutes.value * 60 : setMinutes.value * 60
@@ -95,10 +110,15 @@
                         isBreakTime.value = true
                         startTime.value = Date.now()
                         totalPausedTime.value = 0
+                        // Reset main timer display
+                        minutes.value = setMinutes.value
+                        seconds.value = 0
                         showNotification("Focus time complete!", "Time for a break!")
+
+                        frameId = requestAnimationFrame(updateTimer)  // Continue updating for break timer
                     } else {
                         // Break timer finished
-                        clearInterval(intervalId.value)
+                        cancelAnimationFrame(frameId)
                         isBreakTime.value = false
                         showNotification("Break time complete!", "Back to focus!")
                         reset()
@@ -113,11 +133,17 @@
                     minutes.value = Math.floor(remainingSeconds / 60)
                     seconds.value = remainingSeconds % 60
                 }
-            }, 1000)
+                frameId = requestAnimationFrame(updateTimer)
+            }
+
+            frameId = requestAnimationFrame(updateTimer)
+            intervalId.value = frameId // Store the frame ID for cleanup
         } else {
             // Pause timer
-            clearInterval(intervalId.value);
-            pausedTime.value = Date.now();
+            if (intervalId.value) {
+                cancelAnimationFrame(intervalId.value)
+            }
+            pausedTime.value = Date.now()
         }
     })
 
@@ -127,37 +153,35 @@
         }
     })
 
-    const reset = () => {
-        clearInterval(intervalId.value)
-        minutes.value = setMinutes.value
-        seconds.value = 0
-        breakMinutes.value = setBreakMinutes.value
-        breakSeconds.value = 0
-        isBreakTime.value = false
-        startTime.value = 0
-        pausedTime.value = 0
-        totalPausedTime.value = 0
-    }
+    const resetTimerStates = () => {
+    minutes.value = setMinutes.value
+    breakMinutes.value = setBreakMinutes.value
+    seconds.value = 0
+    breakSeconds.value = 0
+    isBreakTime.value = false
+    startTime.value = 0
+    pausedTime.value = 0
+    totalPausedTime.value = 0
+}
 
-    const setTimes = () => {
-        minutes.value = setMinutes.value
-        breakMinutes.value = setBreakMinutes.value
-        seconds.value = 0
-        breakSeconds.value = 0
-        isBreakTime.value = false
-        // Reset timer if it's running
-        if (props.isRunning) {
-            clearInterval(intervalId.value)
-        }
-        startTime.value = 0
-        pausedTime.value = 0
-        totalPausedTime.value = 0
+const reset = () => {
+    if (intervalId.value) {
+        cancelAnimationFrame(intervalId.value)
     }
+    resetTimerStates()
+}
+
+const setTimes = () => {
+    if (props.isRunning) {
+        cancelAnimationFrame(intervalId.value)
+    }
+    resetTimerStates()
+}
 
     // Cleanup function that runs when component is destroyed
     onBeforeUnmount(() => {
         if (intervalId.value) {
-            clearInterval(intervalId.value);
+            cancelAnimationFrame(intervalId.value)
         }
     })
 
