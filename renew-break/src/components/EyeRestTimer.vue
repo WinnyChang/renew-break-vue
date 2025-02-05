@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+    import { ref, computed, onBeforeUnmount, watch } from 'vue'
     
     const selectedOption = ref('20') // Default time (20 min)
     const setMinutes = computed(() => selectedOption.value === 'off' ? 0 : Number(selectedOption.value))
@@ -33,6 +33,10 @@
     const intervalId = ref(null)
 
     const props = defineProps({
+        notificationPermission: {
+            type: Boolean,
+            required: true
+        },
         isRunning: {
             type: Boolean,
             required: true
@@ -165,19 +169,9 @@
         selectedOption.value === 'off' ? '--' : seconds.value.toString().padStart(2, '0')
     )
 
-    // Request notification permission
-    const requestPermission = async () => {
-        if ("Notification" in window) {
-            const permission = await Notification.requestPermission()
-            notificationPermission.value = permission === "granted"
-        }
-    }
-    onMounted(() => {
-        requestPermission()
-    })
     // Notify user when timer is up
-    const showNotification = async (title, message) => {
-        if ("Notification" in window && Notification.permission === "granted") {
+    const showNotification = (title, message) => {
+        if ("Notification" in window && props.notificationPermission) {
             try {                
                 new Notification(title, {
                     body: message,

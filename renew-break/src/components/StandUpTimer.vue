@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+    import { ref, computed, onBeforeUnmount, watch } from 'vue'
     
     const timeOptions = [
         [0.5, 0.1], [25, 5], [50, 10], [75, 15]
@@ -57,6 +57,10 @@
     const isBreakTime = ref(false)
     
     const props = defineProps({
+        notificationPermission: {
+            type: Boolean,
+            required: true
+        },
         isRunning: {
             type: Boolean,
             required: true
@@ -206,19 +210,9 @@
     const displayBreakMinutes = computed(() => breakMinutes.value.toString().padStart(2, '0'))
     const displayBreakSeconds = computed(() => breakSeconds.value.toString().padStart(2, '0'))
 
-    // Request notification permission
-    const requestPermission = async () => {
-        if ("Notification" in window) {
-            const permission = await Notification.requestPermission()
-            notificationPermission.value = permission === "granted"
-        }
-    }
-    onMounted(() => {
-        requestPermission()
-    })
     // Notify user when timer is up
-    const showNotification = async (title, message) => {
-        if ("Notification" in window && Notification.permission === "granted") {
+    const showNotification = (title, message) => {
+        if ("Notification" in window && props.notificationPermission) {
             try {                    
                 new Notification(title, {
                     body: message,
