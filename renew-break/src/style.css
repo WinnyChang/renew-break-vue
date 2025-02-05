@@ -12,12 +12,12 @@
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
+  font-weight: 700;
+  color: #a1e3f9;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #d1f8ef;
 }
 
 body {
@@ -30,7 +30,8 @@ body {
 
 h1 {
   font-size: 2.75em;
-  line-height: 1.1;
+  line-height: 1;
+  margin-top: 0;
 }
 h2 {
   margin: 0 auto;
@@ -56,6 +57,9 @@ button{
 button:hover {
   border-color: #e0e0e0;
 }
+button:active {
+  transform: scale(0.98);
+}
 select {
   appearance: none; /* Removes default arrow */
   width: 200px;
@@ -66,7 +70,7 @@ select {
   font-family: "Nunito", serif;
   font-size: 1rem;
   font-weight: 600;
-  text-align: center;
+  text-align-last: center; /* Ensure text is centered in modern browsers */
   padding: 6px;
   margin: 18px auto 12px;
   cursor: pointer;
@@ -77,9 +81,6 @@ select:focus {
 }
 select:hover {
   border-color: #e0e0e0;
-}
-button:active {
-  transform: scale(0.98);
 }
 
 .card {
@@ -92,6 +93,6 @@ button:active {
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 1.5rem;
   text-align: center;
 }
