@@ -32,7 +32,7 @@
 
         <section>
           <h2>Before You Start</h2>
-          <p>Please enable browser notification for this site. Click the button below:</p>
+          <p>Please enable browser notifications for this site. Click the button below:</p>
           <button 
             @click="requestPermission" 
             class="notification-btn"
@@ -46,7 +46,7 @@
         <section>
           <h2>I'd Love Your Feedback!</h2>
           <p>
-            This is the initial public release of my web app — I'd love to hear your thoughts! Feel free to fill out the feedback form 
+            This is the initial public release of my web app, and I'd love to hear your thoughts! Feel free to fill out the feedback form 
             <a href="url" target="_blank">here</a>.
           </p>
         </section>
@@ -74,10 +74,10 @@ const requestPermission = async () => {
             if (isEdge) {
                 // Guide users to Edge settings for notifications
                 alert("Please enable notifications for this site in Edge settings:\n\n" +
-                      "1. Click the 'View site information' icon in the left of address bar\n" +
-                      "2. Click 'Permissions for this site'\n" +
-                      "3. Allow notifications (the bell icon)\n\n" +
-                      "Or go to edge://settings/content/notifications")
+                      "1. Click 'View site information' to the left of your address bar.\n" +
+                      "2. Select 'Permissions for this site'.\n" +
+                      "3. Allow notifications.\n\n" +
+                      "Or go to: \nedge://settings/content/notifications \nand add this site under 'Allow'.")
                 // Check permission again after alert
                 const permission = Notification.permission
                 notificationPermission.value = permission === "granted"
@@ -159,6 +159,13 @@ const onTimerComplete = () => {
 }
 
 /* Responsive layout */
+/* Medium screens */
+@media (max-width: 1024px) {
+  .info-section {
+    margin: 0.8rem auto;
+  }
+}
+/* Small screens */
 @media (max-width: 768px) {
   .content {
     flex-direction: column;
@@ -170,6 +177,7 @@ const onTimerComplete = () => {
   }
   .info-section {
     text-align: center;
+    margin: 6rem auto;
   }
 }
 
