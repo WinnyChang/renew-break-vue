@@ -50,7 +50,9 @@
     const startTime = ref(0)
     const pausedTime = ref(0)
     const totalPausedTime = ref(0)
+
     const notificationPermission = ref(false)
+    const skipNotification = ref(false)
 
     // Main timer function
     watch(() => props.isRunning, (newValue) => {
@@ -62,7 +64,7 @@
                 totalPausedTime.value += Date.now() - pausedTime.value
                 pausedTime.value = 0
             };
-            let frameId
+            
             const updateTimer = () => {
                 const currentTime = Date.now()
                 const totalSeconds = setMinutes.value * 60
@@ -73,30 +75,37 @@
                     // Reset timer display
                     minutes.value = setMinutes.value
                     seconds.value = 0
-                    showNotification()
+                    if (!skipNotification.value) {
+                        showNotification("Time to rest your eyes!", "Relax your eyes — look 20 feet (6 meters) away for 20 seconds.")
+                    }
+                    skipNotification.value = false
                     if (props.standupTimeRemaining >= setMinutes.value * 60) {
                         // Loop EyeRestTimer
                         startTime.value = Date.now()
                         totalPausedTime.value = 0
-                        frameId = requestAnimationFrame(updateTimer)
-                    } else {
-                        cancelAnimationFrame(frameId)
+                        if (props.isRunning) { // Only continue if still running
+                            intervalId.value = requestAnimationFrame(updateTimer)
+                        }
                     }
                     return
                 }
             
                 minutes.value = Math.floor(remainingSeconds / 60)
                 seconds.value = remainingSeconds % 60
-                frameId = requestAnimationFrame(updateTimer)
+                if (props.isRunning) { // Only continue if still running
+                    intervalId.value = requestAnimationFrame(updateTimer)
+                }
             }
-            frameId = requestAnimationFrame(updateTimer)
-            intervalId.value = frameId
+            intervalId.value = requestAnimationFrame(updateTimer)
         } else {
             // Pause timer
             if (intervalId.value) {
                 cancelAnimationFrame(intervalId.value)
+                intervalId.value = null
             }
-            pausedTime.value = Date.now();
+            if (startTime.value > 0) {  // Only set pausedTime if timer was running
+                pausedTime.value = Date.now()
+            }
         }
     })
 
@@ -117,8 +126,13 @@
     const reset = () => {
         if (intervalId.value) {
             cancelAnimationFrame(intervalId.value)
+            intervalId.value = null
         }
         resetTimerStates()
+        if (props.isRunning) {
+            props.isRunning = false
+        }
+        skipNotification.value = true
     }
 
     const setTimes = () => {
@@ -161,11 +175,16 @@
         requestPermission()
     })
     // Notify user when timer is up
-    const showNotification = () => {
-        if ("Notification" in window && notificationPermission.value) {
-            new Notification("Eye rest time!", {
-                body: `${setMinutes.value} minutes have passed. Time to rest your eyes!`
-            })
+    const showNotification = async (title, message) => {
+        if ("Notification" in window && Notification.permission === "granted") {
+            try {
+                await window.focus()
+                new Notification(title, {
+                    body: message
+                })
+            } catch (error) {
+                console.error('Notification failed:', error)
+            }
         }
     }
 </script>

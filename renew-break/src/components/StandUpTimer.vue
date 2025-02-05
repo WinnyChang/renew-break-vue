@@ -72,9 +72,10 @@
     const totalPausedTime = ref(0)
 
     const notificationPermission = ref(false)
+    const skipNotification = ref(false)
 
     // Calculate remaining time from standup timer
-    const emit = defineEmits(['updateRemainingTime'])
+    const emit = defineEmits(['updateRemainingTime', 'timerComplete'])
     const remainingTimeInSeconds = computed(() => {
         if (!isBreakTime.value) {
             return minutes.value * 60 + seconds.value
@@ -96,7 +97,7 @@
                 totalPausedTime.value += Date.now() - pausedTime.value
                 pausedTime.value = 0
             };
-            let frameId
+            
             const updateTimer = () => {
                 const currentTime = Date.now()
                 const totalSeconds = isBreakTime.value ? 
@@ -113,15 +114,24 @@
                         // Reset main timer display
                         minutes.value = setMinutes.value
                         seconds.value = 0
-                        showNotification("Focus time complete!", "Time for a break!")
-
-                        frameId = requestAnimationFrame(updateTimer)  // Continue updating for break timer
+                        if (!skipNotification.value) {
+                            showNotification("Focus session done!", "You've earned a break!")
+                        }
+                        skipNotification.value = false
+                        
+                        if (props.isRunning) { // Only continue if still running
+                            intervalId.value = requestAnimationFrame(updateTimer)
+                        }
                     } else {
                         // Break timer finished
-                        cancelAnimationFrame(frameId)
+                        cancelAnimationFrame(intervalId.value)
                         isBreakTime.value = false
-                        showNotification("Break time complete!", "Back to focus!")
+                        if (!skipNotification.value) {
+                            showNotification("Break's over!", "Tap 'Start' when you're ready to focus again!")
+                        }
+                        skipNotification.value = false
                         reset()
+                        emit('timerComplete')
                     }
                     return
                 }
@@ -133,17 +143,22 @@
                     minutes.value = Math.floor(remainingSeconds / 60)
                     seconds.value = remainingSeconds % 60
                 }
-                frameId = requestAnimationFrame(updateTimer)
+                
+                if (props.isRunning) { // Only continue if still running
+                    intervalId.value = requestAnimationFrame(updateTimer)
+                }
             }
 
-            frameId = requestAnimationFrame(updateTimer)
-            intervalId.value = frameId // Store the frame ID for cleanup
+            intervalId.value = requestAnimationFrame(updateTimer)
         } else {
             // Pause timer
             if (intervalId.value) {
                 cancelAnimationFrame(intervalId.value)
+                intervalId.value = null
             }
-            pausedTime.value = Date.now()
+            if (startTime.value > 0) {  // Only set pausedTime if timer was running
+                pausedTime.value = Date.now()
+            }
         }
     })
 
@@ -154,29 +169,34 @@
     })
 
     const resetTimerStates = () => {
-    minutes.value = setMinutes.value
-    breakMinutes.value = setBreakMinutes.value
-    seconds.value = 0
-    breakSeconds.value = 0
-    isBreakTime.value = false
-    startTime.value = 0
-    pausedTime.value = 0
-    totalPausedTime.value = 0
-}
-
-const reset = () => {
-    if (intervalId.value) {
-        cancelAnimationFrame(intervalId.value)
+        minutes.value = setMinutes.value
+        breakMinutes.value = setBreakMinutes.value
+        seconds.value = 0
+        breakSeconds.value = 0
+        isBreakTime.value = false
+        startTime.value = 0
+        pausedTime.value = 0
+        totalPausedTime.value = 0
     }
-    resetTimerStates()
-}
 
-const setTimes = () => {
-    if (props.isRunning) {
-        cancelAnimationFrame(intervalId.value)
+    const reset = () => {
+        if (intervalId.value) {
+            cancelAnimationFrame(intervalId.value)
+            intervalId.value = null
+        }
+        resetTimerStates()
+        if (props.isRunning) {
+            props.isRunning = false
+        }
+        skipNotification.value = true
     }
-    resetTimerStates()
-}
+
+    const setTimes = () => {
+        if (props.isRunning) {
+            cancelAnimationFrame(intervalId.value)
+        }
+        resetTimerStates()
+    }
 
     // Cleanup function that runs when component is destroyed
     onBeforeUnmount(() => {
@@ -203,11 +223,18 @@ const setTimes = () => {
         requestPermission()
     })
     // Notify user when timer is up
-    const showNotification = (title, message) => {
+    const showNotification = async (title, message) => {
         if ("Notification" in window && notificationPermission.value) {
-            new Notification(title, {
-                body: message
-            })
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    await window.focus()
+                    new Notification(title, {
+                        body: message
+                    })
+                } catch (error) {
+                    console.error('Notification failed:', error)
+                }
+            }
         }
     }
 </script>

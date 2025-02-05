@@ -8,6 +8,7 @@
     <StandUpTimer 
       :isRunning="isRunning" :shouldReset="shouldReset"
       @updateRemainingTime="updateStandupTimeRemaining"
+      @timerComplete="onTimerComplete"
     />
     <div class="controls">
       <button class="reset-btn" @click="reset">Reset</button>
@@ -42,6 +43,10 @@ const reset = () => {
 
 const updateStandupTimeRemaining = (time) => {
     standupTimeRemaining.value = time
+}
+
+const onTimerComplete = () => {
+  isRunning.value = false
 }
 </script>
 
