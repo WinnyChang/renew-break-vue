@@ -72,7 +72,6 @@
     const totalPausedTime = ref(0)
 
     const notificationPermission = ref(false)
-    const skipNotification = ref(false)
 
     // Calculate remaining time from standup timer
     const emit = defineEmits(['updateRemainingTime', 'timerComplete'])
@@ -114,26 +113,22 @@
                         // Reset main timer display
                         minutes.value = setMinutes.value
                         seconds.value = 0
-                        if (!skipNotification.value) {
-                            showNotification("Focus session done!", "You've earned a break!")
-                        }
-                        skipNotification.value = false
+                        showNotification("Focus session done!", "Great job! Stand up, stretch, and take a break!")
                         
                         if (props.isRunning) { // Only continue if still running
                             intervalId.value = requestAnimationFrame(updateTimer)
                         }
+                        return
                     } else {
                         // Break timer finished
                         cancelAnimationFrame(intervalId.value)
+                        intervalId.value = null
+                        showNotification("Break's over!", "Tap 'Start' when you're ready to focus again!")
                         isBreakTime.value = false
-                        if (!skipNotification.value) {
-                            showNotification("Break's over!", "Tap 'Start' when you're ready to focus again!")
-                        }
-                        skipNotification.value = false
                         reset()
                         emit('timerComplete')
+                        return
                     }
-                    return
                 }
 
                 if (isBreakTime.value) {
@@ -143,7 +138,7 @@
                     minutes.value = Math.floor(remainingSeconds / 60)
                     seconds.value = remainingSeconds % 60
                 }
-                
+
                 if (props.isRunning) { // Only continue if still running
                     intervalId.value = requestAnimationFrame(updateTimer)
                 }
@@ -188,7 +183,6 @@
         if (props.isRunning) {
             props.isRunning = false
         }
-        skipNotification.value = true
     }
 
     const setTimes = () => {
@@ -224,16 +218,14 @@
     })
     // Notify user when timer is up
     const showNotification = async (title, message) => {
-        if ("Notification" in window && notificationPermission.value) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                try {
-                    await window.focus()
-                    new Notification(title, {
-                        body: message
-                    })
-                } catch (error) {
-                    console.error('Notification failed:', error)
-                }
+        if ("Notification" in window && Notification.permission === "granted") {
+            try {                    
+                new Notification(title, {
+                    body: message,
+                    requireInteraction: true
+                })
+            } catch (error) {
+                console.error('Notification failed:', error)
             }
         }
     }

@@ -52,14 +52,14 @@
     const totalPausedTime = ref(0)
 
     const notificationPermission = ref(false)
-    const skipNotification = ref(false)
 
     // Main timer function
     watch(() => props.isRunning, (newValue) => {
         if (newValue && selectedOption.value !== 'off') {
-            // Start timer
-            if (startTime.value === 0) {
+            // Start / Restart timer
+            if (minutes.value === setMinutes.value && seconds.value === 0) {
                 startTime.value = Date.now()
+                totalPausedTime.value = 0
             } else if (pausedTime.value > 0) {
                 totalPausedTime.value += Date.now() - pausedTime.value
                 pausedTime.value = 0
@@ -72,13 +72,12 @@
                 const remainingSeconds = Math.max(totalSeconds - elapsedSeconds, 0)
                 
                 if (remainingSeconds === 0) {
+                    showNotification("Time to rest your eyes!", "Relax your eyes — look 20 feet (6 meters) away for 20 seconds.")
+                    
                     // Reset timer display
                     minutes.value = setMinutes.value
                     seconds.value = 0
-                    if (!skipNotification.value) {
-                        showNotification("Time to rest your eyes!", "Relax your eyes — look 20 feet (6 meters) away for 20 seconds.")
-                    }
-                    skipNotification.value = false
+                    
                     if (props.standupTimeRemaining >= setMinutes.value * 60) {
                         // Loop EyeRestTimer
                         startTime.value = Date.now()
@@ -86,6 +85,9 @@
                         if (props.isRunning) { // Only continue if still running
                             intervalId.value = requestAnimationFrame(updateTimer)
                         }
+                    } else {
+                        cancelAnimationFrame(intervalId.value)
+                        intervalId.value = null
                     }
                     return
                 }
@@ -132,7 +134,6 @@
         if (props.isRunning) {
             props.isRunning = false
         }
-        skipNotification.value = true
     }
 
     const setTimes = () => {
@@ -177,10 +178,10 @@
     // Notify user when timer is up
     const showNotification = async (title, message) => {
         if ("Notification" in window && Notification.permission === "granted") {
-            try {
-                await window.focus()
+            try {                
                 new Notification(title, {
-                    body: message
+                    body: message,
+                    requireInteraction: true
                 })
             } catch (error) {
                 console.error('Notification failed:', error)
