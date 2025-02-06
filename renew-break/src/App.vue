@@ -56,20 +56,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import StandUpTimer from './components/StandUpTimer.vue';
-import EyeRestTimer from './components/EyeRestTimer.vue';
+import { ref, provide, onMounted, onBeforeUnmount } from 'vue'
+import StandUpTimer from './components/StandUpTimer.vue'
+import EyeRestTimer from './components/EyeRestTimer.vue'
 
-const notificationPermission = ref(false)
-const isRunning = ref(false)
-const shouldReset = ref(false)
-const standupTimeRemaining = ref(0)
+// Worker setup
+const timerWorker = ref(null);
+provide('timerWorker', timerWorker);  // Make the worker available to child components
+
+// State / refs
+const notificationPermission = ref(false);
+const isRunning = ref(false);
+const shouldReset = ref(false);
+const standupTimeRemaining = ref(0);
 
 const requestPermission = async () => {
     if ("Notification" in window) {
         try {
             // Check if it's Edge browser
-            const isEdge = navigator.userAgent.includes("Edg")
+            const isEdge = navigator.userAgent.includes("Edg");
             
             if (isEdge) {
                 // Guide users to Edge settings for notifications
@@ -77,46 +82,57 @@ const requestPermission = async () => {
                       "1. Click 'View site information' to the left of your address bar.\n" +
                       "2. Select 'Permissions for this site'.\n" +
                       "3. Allow notifications.\n\n" +
-                      "Or go to: \nedge://settings/content/notifications \nand add this site under 'Allow'.")
+                      "Or go to: \nedge://settings/content/notifications \nand add this site under 'Allow'.");
                 // Check permission again after alert
-                const permission = Notification.permission
-                notificationPermission.value = permission === "granted"
+                const permission = Notification.permission;
+                notificationPermission.value = permission === "granted";
             } else {
                 // For other browsers
-                const permission = await Notification.requestPermission()
-                notificationPermission.value = permission === "granted"
+                const permission = await Notification.requestPermission();
+                notificationPermission.value = permission === "granted";
             }
         } catch (error) {
-            console.error('Failed to request notification permission:', error)
+            console.error('Failed to request notification permission:', error);
         }
     }
-}
-onMounted(() => {
-    if ("Notification" in window) {
-        notificationPermission.value = Notification.permission === "granted"
-    }
-})
+};
 
+
+// Timer control functions
 const startPause = () => {
-  isRunning.value = !isRunning.value
-}
+  isRunning.value = !isRunning.value;
+};
 
 const reset = () => {
-  isRunning.value = false
-  shouldReset.value = true
-  standupTimeRemaining.value = 0
+  isRunning.value = false;
+  shouldReset.value = true;
+  standupTimeRemaining.value = 0;
   setTimeout(() => {
-    shouldReset.value = false
-  }, 100)
-}
+    shouldReset.value = false;
+  }, 100);
+};
 
 const updateStandupTimeRemaining = (time) => {
-    standupTimeRemaining.value = time
-}
+    standupTimeRemaining.value = time;
+};
 
 const onTimerComplete = () => {
-  isRunning.value = false
-}
+  isRunning.value = false;
+};
+
+
+onMounted(() => {
+    timerWorker.value = new Worker('/timer-worker.js')  // Create new worker instance
+    if ("Notification" in window) {
+        notificationPermission.value = Notification.permission === "granted";
+    }
+});
+
+onBeforeUnmount(() => {
+    if (timerWorker.value) {
+        timerWorker.value.terminate();  // Stop the worker when component unmounts
+    }
+});
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@
     <div class="card">
         <h2>Stand Up Timer</h2>
 
-        <select v-model="selectedOption" @change="setTimes">
+        <select v-model="selectedOption" @change="reset">
             <option v-for="[focusTime, breakTime] in timeOptions" :key="focusTime" :value="focusTime">
                 {{ focusTime }} Focus + {{ breakTime }} Break
             </option>
@@ -36,25 +36,10 @@
 </template>
 
 <script setup>
-    import { ref, computed, onBeforeUnmount, watch } from 'vue'
+    import { ref, computed, watch, inject, onBeforeUnmount } from 'vue'
     
-    const timeOptions = [
-        [0.5, 0.1], [25, 5], [50, 10], [75, 15]
-    ]
-
-    const selectedOption = ref(50)  // Default focus time (50 min)
-    const setMinutes = computed(() => selectedOption.value)
-    const minutes = ref(setMinutes.value)
-    const seconds = ref(0)
-    const intervalId = ref(null)
-
-    const setBreakMinutes = computed(() => {
-        const option = timeOptions.find(([focus]) => focus === selectedOption.value)
-        return option[1]
-    })
-    const breakMinutes = ref(setBreakMinutes.value)
-    const breakSeconds = ref(0)
-    const isBreakTime = ref(false)
+    const worker = inject('timerWorker');
+    const emit = defineEmits(['updateRemainingTime', 'timerComplete']);
     
     const props = defineProps({
         notificationPermission: {
@@ -71,158 +56,160 @@
         }
     })
 
-    const startTime = ref(0)
-    const pausedTime = ref(0)
-    const totalPausedTime = ref(0)
+    // Timer options and state
+    const timeOptions = [[0.5, 0.1], [25, 5], [50, 10], [75, 15]];
+    const selectedOption = ref(50);  // Default: 50 Focus + 10 Break
+    const isBreakTime = ref(false);
+    
+    // StandUpTimer state
+    const setMinutes = computed(() => selectedOption.value);
+    const minutes = ref(setMinutes.value);
+    const seconds = ref(0);
 
-    const notificationPermission = ref(false)
+    // BreakTimer state
+    const setBreakMinutes = computed(() => {
+        const option = timeOptions.find(([focus]) => focus === selectedOption.value);
+        return option[1];
+    });
+    const breakMinutes = ref(setBreakMinutes.value);
+    const breakSeconds = ref(0);
 
-    // Calculate remaining time from standup timer
-    const emit = defineEmits(['updateRemainingTime', 'timerComplete'])
-    const remainingTimeInSeconds = computed(() => {
-        if (!isBreakTime.value) {
-            return minutes.value * 60 + seconds.value
-        }
-        return 0 // Return 0 during break time
-    })
-    // Watch for changes in remaining time and emit
-    watch(remainingTimeInSeconds, (newValue) => {
-        emit('updateRemainingTime', newValue)
-    })
-
-    // Timers function
-    watch(() => props.isRunning, (newValue) => {
-        if (newValue) {
-            // Start timer
-            if (startTime.value === 0) {
-                startTime.value = Date.now()
-            } else if (pausedTime.value > 0) {
-                totalPausedTime.value += Date.now() - pausedTime.value
-                pausedTime.value = 0
-            };
-            
-            const updateTimer = () => {
-                const currentTime = Date.now()
-                const totalSeconds = isBreakTime.value ? 
-                    setBreakMinutes.value * 60 : setMinutes.value * 60
-                const elapsedSeconds = Math.floor((currentTime - startTime.value - totalPausedTime.value) / 1000)
-                const remainingSeconds = Math.max(totalSeconds - elapsedSeconds, 0)
-                
-                if (remainingSeconds === 0) {
-                    if (!isBreakTime.value) {
-                        // Main timer finished, start break timer
-                        isBreakTime.value = true
-                        startTime.value = Date.now()
-                        totalPausedTime.value = 0
-                        // Reset main timer display
-                        minutes.value = setMinutes.value
-                        seconds.value = 0
-                        showNotification("Focus session done!", "Great job! Stand up, stretch, and take a break!")
-                        
-                        if (props.isRunning) { // Only continue if still running
-                            intervalId.value = requestAnimationFrame(updateTimer)
-                        }
-                        return
-                    } else {
-                        // Break timer finished
-                        cancelAnimationFrame(intervalId.value)
-                        intervalId.value = null
-                        showNotification("Break's over!", "Tap 'Start' when you're ready to focus again!")
-                        isBreakTime.value = false
-                        reset()
-                        emit('timerComplete')
-                        return
-                    }
-                }
-
-                if (isBreakTime.value) {
-                    breakMinutes.value = Math.floor(remainingSeconds / 60)
-                    breakSeconds.value = remainingSeconds % 60
-                } else {
-                    minutes.value = Math.floor(remainingSeconds / 60)
-                    seconds.value = remainingSeconds % 60
-                }
-
-                if (props.isRunning) { // Only continue if still running
-                    intervalId.value = requestAnimationFrame(updateTimer)
-                }
-            }
-
-            intervalId.value = requestAnimationFrame(updateTimer)
-        } else {
-            // Pause timer
-            if (intervalId.value) {
-                cancelAnimationFrame(intervalId.value)
-                intervalId.value = null
-            }
-            if (startTime.value > 0) {  // Only set pausedTime if timer was running
-                pausedTime.value = Date.now()
-            }
-        }
-    })
-
-    watch(() => props.shouldReset, (newValue) => {
-        if (newValue) {
-            reset()
-        }
-    })
-
-    const resetTimerStates = () => {
-        minutes.value = setMinutes.value
-        breakMinutes.value = setBreakMinutes.value
-        seconds.value = 0
-        breakSeconds.value = 0
-        isBreakTime.value = false
-        startTime.value = 0
-        pausedTime.value = 0
-        totalPausedTime.value = 0
-    }
-
-    const reset = () => {
-        if (intervalId.value) {
-            cancelAnimationFrame(intervalId.value)
-            intervalId.value = null
-        }
-        resetTimerStates()
-        if (props.isRunning) {
-            props.isRunning = false
-        }
-    }
-
-    const setTimes = () => {
-        if (props.isRunning) {
-            cancelAnimationFrame(intervalId.value)
-        }
-        resetTimerStates()
-    }
-
-    // Cleanup function that runs when component is destroyed
-    onBeforeUnmount(() => {
-        if (intervalId.value) {
-            cancelAnimationFrame(intervalId.value)
-        }
-    })
-
-    // Computed properties for main timer
+    // Display formatting
+    // StandUpTimer
     const displayMinutes = computed(() => minutes.value.toString().padStart(2, '0'));
     const displaySeconds = computed(() => seconds.value.toString().padStart(2, '0'));
-    // Computed properties for break timer
-    const displayBreakMinutes = computed(() => breakMinutes.value.toString().padStart(2, '0'))
-    const displayBreakSeconds = computed(() => breakSeconds.value.toString().padStart(2, '0'))
+    // BreakTimer
+    const displayBreakMinutes = computed(() => breakMinutes.value.toString().padStart(2, '0'));
+    const displayBreakSeconds = computed(() => breakSeconds.value.toString().padStart(2, '0'));
 
-    // Notify user when timer is up
+    
+    // Helper functions
+    const getCurrentTimerType = () => !isBreakTime.value ? 'standUp' : 'break';
+    const getCurrentTimerLength = () => (!isBreakTime.value ? setMinutes.value : setBreakMinutes.value) * 60 * 1000;
+    
+    const messageHandler = (e) => {
+        const { type, timerType, remaining } = e.data;
+        console.log('StandUpTimer received:', type, timerType, remaining);
+        
+        if (timerType === 'standUp' || timerType === 'break') {
+            if (type === 'tick' && props.isRunning) {
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                
+                if (!isBreakTime.value) {
+                    console.log('Updating StandUpTimer display:', mins, secs);
+                    minutes.value = mins;
+                    seconds.value = secs;
+                    // Emit remaining time for EyeRestTimer
+                    emit('updateRemainingTime', mins * 60 + secs);
+                } else {
+                    console.log('Updating BreakTimer display:', mins, secs);
+                    breakMinutes.value = mins;
+                    breakSeconds.value = secs;
+                }
+            } else if (type === 'complete') {
+                if (!isBreakTime.value) {  // StandUpTimer finished
+                    minutes.value = 0;
+                    seconds.value = 0;
+                    showNotification("Focus session done!", "Great job! Stand up, stretch, and take a break!");
+                    
+                    // Triggers BreakTimer to start
+                    isBreakTime.value = true;
+                    if (props.isRunning) {
+                        worker.value?.postMessage({
+                            action: 'start',
+                            data: {
+                                timerType: 'break',
+                                timerLength: setBreakMinutes.value * 60 * 1000
+                            }
+                        });
+                    }
+                } else {  // BreakTimer finished
+                    showNotification("Break's over!", "Tap 'Start' when you're ready to focus again!");
+                    isBreakTime.value = false;
+                    reset();
+                    emit('timerComplete');
+                }
+            }
+        }
+    };
+
+    const reset = () => {
+        // Reset both timers in worker
+        worker.value?.postMessage({
+            action: 'reset',
+            data: {
+                timerType: ['standUp', 'break']  // Send array of timer types
+            }
+        });
+        
+        // Reset timers' values
+        minutes.value = setMinutes.value;
+        seconds.value = 0;
+        breakMinutes.value = setBreakMinutes.value;
+        breakSeconds.value = 0;
+        isBreakTime.value = false;
+
+        emit('updateRemainingTime', 0);
+    };
+
     const showNotification = (title, message) => {
         if ("Notification" in window && props.notificationPermission) {
             try {                    
                 new Notification(title, {
                     body: message,
                     requireInteraction: true
-                })
+                });
             } catch (error) {
-                console.error('Notification failed:', error)
+                console.error('Notification failed:', error);
             }
         }
-    }
+    };
+
+    // Watchers
+    // 1. Set up message handler
+    watch(() => worker.value, (newWorker) => {
+        if (newWorker) {
+            console.log('Worker now available for StandUpTimer. Setting up message handler.');
+            newWorker.addEventListener('message', messageHandler);
+        }
+    }, { immediate: true });
+
+    // 2. Start / Pause timer based on isRunning value
+    watch(() => props.isRunning, (newValue) => {
+        if (!worker.value) {
+            console.warn('No worker available for StandUpTimer');
+            return;
+        }
+
+        const timerType = getCurrentTimerType();
+        const timerLength = getCurrentTimerLength();
+
+        const action = newValue ? 'start' : 'pause';
+        console.log(`${newValue ? 'Starting' : 'Pausing'} ${timerType} timer (timerLength: ${timerLength})`);
+        worker.value.postMessage({
+            action,
+            data: {
+                timerType,
+                ...(newValue && { timerLength })
+            }
+        });
+    });
+
+    // 3. Reset timer
+    watch(() => props.shouldReset, (newValue) => {
+        if (newValue) {
+            reset();
+        }
+    });
+
+
+    // Clean up when component unmounts
+    onBeforeUnmount(() => {
+        if (worker.value) {
+            worker.value.removeEventListener('message', messageHandler);
+        }
+    });
 </script>
 
 <style scoped>
