@@ -52,7 +52,7 @@
     })
 
     // EyeRestTimer state
-    const timeOptions = ['off', '0.2', '20', '30'];
+    const timeOptions = ['off', '20', '30'];
     const selectedOption = ref('20'); // Default time (20 min)
     const setMinutes = computed(() => selectedOption.value === 'off' ? null : Number(selectedOption.value));
     const minutes = ref(setMinutes.value);

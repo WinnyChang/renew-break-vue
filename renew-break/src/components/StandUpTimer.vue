@@ -57,7 +57,7 @@
     })
 
     // Timer options and state
-    const timeOptions = [[0.5, 0.1], [25, 5], [50, 10], [75, 15]];
+    const timeOptions = [[25, 5], [50, 10], [75, 15]];
     const selectedOption = ref(50);  // Default: 50 Focus + 10 Break
     const isBreakTime = ref(false);
     
