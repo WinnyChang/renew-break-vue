@@ -39,7 +39,7 @@
     import { ref, computed, watch, inject, onBeforeUnmount } from 'vue'
     
     const worker = inject('timerWorker');
-    const emit = defineEmits(['selectOption', 'updateRemainingTime', 'timerComplete']);
+    const emit = defineEmits(['selectOption', 'timeSetting', 'updateRemainingTime', 'timerComplete']);
     
     const props = defineProps({
         notificationPermission: {
@@ -137,6 +137,7 @@
 
     const onSelectOption = () => {
         emit('selectOption');
+        emit('timeSetting', setMinutes.value);
     };
 
     const reset = () => {
@@ -191,7 +192,6 @@
         const timerLength = getCurrentTimerLength();
 
         const action = newValue ? 'start' : 'pause';
-        console.log(`${newValue ? 'Starting' : 'Pausing'} ${timerType} timer (timerLength: ${timerLength})`);
         worker.value.postMessage({
             action,
             data: {

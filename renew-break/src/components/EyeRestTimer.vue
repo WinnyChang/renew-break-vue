@@ -3,10 +3,9 @@
         <h2>Eye Rest Timer</h2>
 
         <select v-model="selectedOption" @change="onSelectOption">
-            <option value="off">Off</option>
-            <option value="0.2">0.2 min</option>
-            <option value="20">20 min</option>
-            <option value="30">30 min</option>
+            <option v-for="time in validOptions" :key="time" :value="time">
+                {{ time === 'off' ? 'Off' : `${time} min` }}
+            </option>
         </select>
 
         <section class="timer">
@@ -42,6 +41,10 @@
             type: Boolean,
             required: true
         },
+        standupTimeSetting: {  // Get standup timer's setting
+            type: Number,
+            required: true
+        },
         standupTimeRemaining: {  // Get remaining time from standup timer
             type: Number,
             required: true
@@ -49,11 +52,20 @@
     })
 
     // EyeRestTimer state
+    const timeOptions = ['off', '0.2', '20', '30'];
     const selectedOption = ref('20'); // Default time (20 min)
     const setMinutes = computed(() => selectedOption.value === 'off' ? null : Number(selectedOption.value));
     const minutes = ref(setMinutes.value);
     const seconds = ref(0);
     
+    // Filter valid options (based on StandUpTimer setting)
+    const validOptions = computed(() => {
+        const standupMinutes = props.standupTimeSetting;
+        return timeOptions.filter(time => 
+            time === 'off' || Number(time) <= standupMinutes
+        );
+    });
+
     // Display formatting
     const displayMinutes = computed(() => 
         selectedOption.value === 'off' || minutes.value === null ? 
@@ -157,7 +169,6 @@
         const timerLength = setMinutes.value * 60 * 1000;
         
         const action = newValue ? 'start' : 'pause';
-        console.log(`${newValue ? 'Starting' : 'Pausing'} ${timerType} timer (timerLength: ${timerLength})`);
         worker.value.postMessage({
             action,
             data: {
@@ -172,6 +183,26 @@
         if (newValue) {
             reset();
         }
+    });
+
+    // 4. Auto-adjust EyeRestTimer setting when it's greater than StandUpTimer setting
+    watch(() => props.standupTimeSetting, (newValue) => {
+        const currentMinutes = Number(selectedOption.value);
+        if (selectedOption.value !== 'off' && currentMinutes > newValue) {
+            // Get the largest valid option that's less than standup time
+            const validTimes = timeOptions.slice(1).filter(time => 
+                Number(time) <= newValue
+            );
+            
+            selectedOption.value = validTimes.length > 0 ? 
+                validTimes[validTimes.length - 1] :  // Set to the largest valid option
+                'off';  // Set to 'off' if no valid options
+            
+            // Reset timer with new setting
+            reset();
+            console.log('EyeRestTimer setting auto-adjusted to:', selectedOption.value);
+        }
+        // Do nothing if current setting is valid for new standup time
     });
 
     

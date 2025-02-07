@@ -19,7 +19,6 @@ self.onmessage = function(e) {
     
     switch(action) {
         case 'start':
-            console.log('Starting', data.timerType, 'timer');
             timer.timerLength = data.timerLength;
 
             if (!timer.startAt) {  // Fresh Start
@@ -32,17 +31,15 @@ self.onmessage = function(e) {
             
             if (!checkInterval) {
                 console.log('Starting check interval');
-                checkInterval = setInterval(() => checkTimers(), 1000);  // Check the timers every 500ms
+                checkInterval = setInterval(() => checkTimers(), 500);  // Check the timers every 500ms
             }
             break;
             
         case 'pause':
-            console.log('Pausing', data.timerType, 'timer');
             timer.pausedAt = Date.now();
             break;
             
         case 'reset':
-            console.log('Resetting', data.timerType, 'timer');
             if (Array.isArray(data.timerType)) {
                 // Reset multiple timers (StandUp & Break)
                 data.timerType.forEach(timerType => {
@@ -72,12 +69,6 @@ function checkTimers() {
             // Calculate time elapsed and time remaining
             const elapsed = currentTime - timer.startAt - timer.totalPausedTime;
             const remaining = Math.max(0, timer.timerLength - elapsed);
-            
-            console.log(`Checking ${timerType}:`, {
-                elapsed,
-                remaining,
-                timerLength: timer.timerLength
-            });
 
             // Send tick message to main app for UI update
             self.postMessage({

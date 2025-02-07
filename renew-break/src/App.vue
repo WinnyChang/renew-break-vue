@@ -7,6 +7,7 @@
           :notificationPermission="notificationPermission"
           :isRunning="isRunning"
           :shouldReset="shouldReset"
+          :standupTimeSetting="standupTimeSetting"
           :standupTimeRemaining="standupTimeRemaining"
           @selectOption="reset"
         />
@@ -17,6 +18,7 @@
           @updateRemainingTime="updateStandupTimeRemaining"
           @timerComplete="reset"
           @selectOption="reset"
+          @timeSetting="sendSetting"
         />
         <div class="controls">
           <button class="reset-btn" @click="reset">Reset</button>
@@ -70,6 +72,7 @@ provide('timerWorker', timerWorker);  // Make the worker available to child comp
 const notificationPermission = ref(false);
 const isRunning = ref(false);
 const shouldReset = ref(false);
+const standupTimeSetting = ref(50); // Default 50 min
 const standupTimeRemaining = ref(0);
 
 const requestPermission = async () => {
@@ -102,16 +105,22 @@ const requestPermission = async () => {
 
 // Timer control functions
 const startPause = () => {
+  console.log(`${!isRunning.value ? 'Starting' : 'Pausing'} all timers`);
   isRunning.value = !isRunning.value;
 };
 
 const reset = () => {
+  console.log('Resetting all timers');
   isRunning.value = false;
   shouldReset.value = true;
   standupTimeRemaining.value = 0;
   setTimeout(() => {
     shouldReset.value = false;
   }, 100);
+};
+
+const sendSetting = (time) => {
+    standupTimeSetting.value = time;
 };
 
 const updateStandupTimeRemaining = (time) => {
