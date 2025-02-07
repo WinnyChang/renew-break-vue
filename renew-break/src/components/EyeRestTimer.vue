@@ -2,7 +2,7 @@
     <div class="card" :class="{ 'disabled': selectedOption === 'off' }">
         <h2>Eye Rest Timer</h2>
 
-        <select v-model="selectedOption" @change="reset">
+        <select v-model="selectedOption" @change="onSelectOption">
             <option value="off">Off</option>
             <option value="0.2">0.2 min</option>
             <option value="20">20 min</option>
@@ -27,6 +27,7 @@
     import { ref, computed, watch, inject, onBeforeUnmount } from 'vue'
     
     const worker = inject('timerWorker');
+    const emit = defineEmits(['selectOption']);
 
     const props = defineProps({
         notificationPermission: {
@@ -66,11 +67,11 @@
 
     // Helper functions
     const messageHandler = (e) => {
-        const { type, timerType, remaining } = e.data;
-        console.log('EyeRestTimer received:', type, timerType, remaining);
+        const { type, timerType, remaining, time } = e.data;
         
         if (timerType === 'eyeRest') {
             if (type === 'tick' && props.isRunning && selectedOption.value !== 'off') {
+                console.log('EyeRestTimer received:', type, timerType, 'remaining', remaining);
                 // Update timer display
                 const mins = Math.floor(remaining / 60000);
                 const secs = Math.floor((remaining % 60000) / 1000);
@@ -78,8 +79,8 @@
                 minutes.value = mins;
                 seconds.value = secs;
             } else if (type === 'complete') {
+                console.log('EyeRestTimer received:', type, timerType, 'at', time);
                 // Send notification upon timer completion
-                console.log('Timer complete');
                 showNotification("Time to rest your eyes!", 
                     "Relax your eyes — look 20 feet (6 meters) away for 20 seconds.");
                 
@@ -98,6 +99,10 @@
                 }
             }
         }
+    };
+
+    const onSelectOption = () => {
+        emit('selectOption');
     };
 
     const reset = () => {

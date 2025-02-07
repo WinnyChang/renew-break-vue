@@ -2,7 +2,7 @@
     <div class="card">
         <h2>Stand Up Timer</h2>
 
-        <select v-model="selectedOption" @change="reset">
+        <select v-model="selectedOption" @change="onSelectOption">
             <option v-for="[focusTime, breakTime] in timeOptions" :key="focusTime" :value="focusTime">
                 {{ focusTime }} Focus + {{ breakTime }} Break
             </option>
@@ -39,7 +39,7 @@
     import { ref, computed, watch, inject, onBeforeUnmount } from 'vue'
     
     const worker = inject('timerWorker');
-    const emit = defineEmits(['updateRemainingTime', 'timerComplete']);
+    const emit = defineEmits(['selectOption', 'updateRemainingTime', 'timerComplete']);
     
     const props = defineProps({
         notificationPermission: {
@@ -88,11 +88,11 @@
     const getCurrentTimerLength = () => (!isBreakTime.value ? setMinutes.value : setBreakMinutes.value) * 60 * 1000;
     
     const messageHandler = (e) => {
-        const { type, timerType, remaining } = e.data;
-        console.log('StandUpTimer received:', type, timerType, remaining);
+        const { type, timerType, remaining, time } = e.data;
         
         if (timerType === 'standUp' || timerType === 'break') {
             if (type === 'tick' && props.isRunning) {
+                console.log('StandUpTimer received:', type, timerType, 'remaining', remaining);
                 const mins = Math.floor(remaining / 60000);
                 const secs = Math.floor((remaining % 60000) / 1000);
                 
@@ -108,6 +108,7 @@
                     breakSeconds.value = secs;
                 }
             } else if (type === 'complete') {
+                console.log('StandUpTimer received:', type, timerType, 'at', time);
                 if (!isBreakTime.value) {  // StandUpTimer finished
                     minutes.value = 0;
                     seconds.value = 0;
@@ -132,6 +133,10 @@
                 }
             }
         }
+    };
+
+    const onSelectOption = () => {
+        emit('selectOption');
     };
 
     const reset = () => {

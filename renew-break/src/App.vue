@@ -8,13 +8,15 @@
           :isRunning="isRunning"
           :shouldReset="shouldReset"
           :standupTimeRemaining="standupTimeRemaining"
+          @selectOption="reset"
         />
         <StandUpTimer 
           :notificationPermission="notificationPermission"
           :isRunning="isRunning"
           :shouldReset="shouldReset"
           @updateRemainingTime="updateStandupTimeRemaining"
-          @timerComplete="onTimerComplete"
+          @timerComplete="reset"
+          @selectOption="reset"
         />
         <div class="controls">
           <button class="reset-btn" @click="reset">Reset</button>
@@ -114,10 +116,6 @@ const reset = () => {
 
 const updateStandupTimeRemaining = (time) => {
     standupTimeRemaining.value = time;
-};
-
-const onTimerComplete = () => {
-  isRunning.value = false;
 };
 
 

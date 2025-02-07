@@ -15,12 +15,11 @@ self.onmessage = function(e) {
     // action: start / pause / reset
     // data: timer's type and its length
     const { action, data } = e.data;
-    console.log('Worker received:', action, data);
     const timer = timers[data.timerType];
     
     switch(action) {
         case 'start':
-            console.log('Starting timer:', data.timerType);
+            console.log('Starting', data.timerType, 'timer');
             timer.timerLength = data.timerLength;
 
             if (!timer.startAt) {  // Fresh Start
@@ -38,12 +37,12 @@ self.onmessage = function(e) {
             break;
             
         case 'pause':
-            console.log('Pausing timer:', data.timerType);
+            console.log('Pausing', data.timerType, 'timer');
             timer.pausedAt = Date.now();
             break;
             
         case 'reset':
-            console.log('Resetting timer:', data.timerType);
+            console.log('Resetting', data.timerType, 'timer');
             if (Array.isArray(data.timerType)) {
                 // Reset multiple timers (StandUp & Break)
                 data.timerType.forEach(timerType => {
@@ -89,11 +88,17 @@ function checkTimers() {
             
             // Timer completed
             if (remaining === 0) {
-                console.log('Timer completed:', timerType);
+                const formattedTime = new Intl.DateTimeFormat('en-CA', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false
+                  }).format(currentTime).replace(",", "");
+                
+                console.log(timerType, 'timer completed');
                 self.postMessage({
                     type: 'complete',
                     timerType: timerType,
-                    time: currentTime
+                    time: formattedTime
                 });
                 // Stop checking this timer until it's started again
                 timer.startAt = null;
