@@ -134,7 +134,10 @@ const updateStandupTimeRemaining = (time) => {
 
 
 onMounted(() => {
-    timerWorker.value = new Worker('/timer-worker.js')  // Create new worker instance
+    timerWorker.value = new Worker(    
+        new URL('./workers/timer-worker.js', import.meta.url),
+            { type: 'module' }
+    )
     if ("Notification" in window) {
         notificationPermission.value = Notification.permission === "granted";
     }
