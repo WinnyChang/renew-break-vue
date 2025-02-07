@@ -51,11 +51,16 @@
           <h2>I'd Love Your Feedback!</h2>
           <p>
             This is the initial public release of my web app, and I'd love to hear your thoughts! Feel free to fill out the feedback form 
-            <a href="url" target="_blank">here</a>.
+            <a href="https://forms.gle/thmp2eGWhjhP5kur7" target="_blank">here</a>.
           </p>
         </section>
       </div>
     </div>
+    <!-- Footer with counter -->
+    <footer class="footer">
+      <span>Version 1.0.0</span> • <span>Visitors </span>
+      <a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/65/1738906000/" alt="visitor-counter"></a>
+    </footer>
   </div>
 </template>
 
@@ -228,5 +233,12 @@ onBeforeUnmount(() => {
     pointer-events: none;  /* Disables all hover/active effects */
     opacity: 0.6;
     cursor: default;
+}
+
+.footer {
+  margin-top: auto;  /* Pushes footer to bottom */
+  padding: 10px 0;
+  text-align: center;
+  width: 100%;
 }
 </style>
