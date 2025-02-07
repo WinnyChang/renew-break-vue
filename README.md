@@ -24,12 +24,15 @@ A web-based timer application that helps computer users take regular eye-rest an
    - Break completion
 
 ## Technologies Used
-- Vue.js 3 (Composition API)
-- HTML5 and CSS3
-- Web Workers for timer management
-- Browser Notifications API
-- Vite build tool
-- GitHub Pages for deployment
+- Core Technologies:
+  - Vue.js 3 (Composition API)
+  - JavaScript, HTML5, CSS3
+- Features:
+  - Web Workers for timer management
+  - Browser Notifications API
+- Build & Deployment:
+  - Vite build tool
+  - GitHub Pages
 
 ## Version
 Current version: 1.0.0 (Released: February 7, 2025)
