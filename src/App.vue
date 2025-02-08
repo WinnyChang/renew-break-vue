@@ -31,12 +31,25 @@
       <div class="info-section">
         <section>
           <h2>About</h2>
-          <p>RenewBreak reminds you to rest your eyes and stand up. Stay healthy with regular breaks!</p>
+          <p>Inspired by the 20-20-20 rule, RenewBreak reminds you to rest your eyes and stand up during computer work. Stay healthy with regular breaks!</p>
+          <p class="note">Note: This web app is designed for <b>computer web browsers</b>, and some features may not work properly on mobile devices.</p>
+        </section>
+
+        <section>
+          <h2>Timer Settings</h2>
+          <ul>
+            <li>Eye Rest Timer: Off / 20 / 30 min intervals (auto-repeats until focus time ends)</li>
+            <li>Stand Up Timer: 25 / 50 / 75 min focus + 5 / 10 / 15 min break</li>
+            <li>Default Setting: 20 min eye rest loop, 50 min focus + 10 min break<br>
+              <p class="example">Under default setting, you'll get reminders at:
+                20 min & 40 min for eye rest, 50 min for stand-up break, and 60 min to resume focus.</p>
+            </li>
+          </ul>
         </section>
 
         <section>
           <h2>Before You Start</h2>
-          <p>Please enable browser notifications for this site. Click the button below:</p>
+          <p>Please <b>enable browser notifications</b> for this site. Click the button below:</p>
           <button 
             @click="requestPermission" 
             class="notification-btn"
@@ -44,7 +57,9 @@
           >
             {{ notificationPermission ? 'Notifications Enabled' : 'Enable Notifications' }}
           </button>
-          <p class="note">Mac users: You may need to visit <b>Settings → Notifications → Application Notifications</b> and allow notifications for your browser. Select <b>Banners</b> or <b>Alerts</b> for the best experience.</p>
+          <p>Please also <b>allow system notifications</b> from your browser.</p>
+          <p class="note">Windows users: Go to <b>Settings → System → Notifications</b>, under <b>Notifications from apps and other senders</b>, select your browser, turn on notification and make sure <b>Show notification banners</b> is checked for the best experience.</p>
+          <p class="note">MacOS users: Go to <b>System Settings → Notifications</b>, under <b>Application Notifications</b>, select your browser, allow notifications and select <b>Alerts</b> for the best experience.</p>
         </section>
 
         <section>
@@ -58,7 +73,7 @@
     </div>
     <!-- Footer with counter -->
     <footer class="footer">
-      <span>Version 1.0.0</span> • <span>Visitors </span>
+      <span>Version 1.0.1</span> ・ <span>Visitors </span>
       <a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/65/1738906000/" alt="visitor-counter"></a>
     </footer>
   </div>
@@ -169,34 +184,38 @@ onBeforeUnmount(() => {
 .info-section {
   max-width: 640px;
   text-align: left;
-  margin: 6.8rem auto;
+  margin: 0.5rem auto;
 }
 
 .info-section section {
-  margin-bottom: 2rem;
+  margin: 0 0 1.5rem;
 }
 .info-section h2 {
-  margin-bottom: 1rem;
+  margin: 0 0 0.4rem;
   font-size: 1.5rem;
 }
 .info-section p {
-  margin-bottom: 1rem;
+  margin: 0.4rem 0;
   font-size: 1.2rem;
-  line-height: 1.5;
+  line-height: 1.4;
 }
-.note {
-  font-size: 1rem;
+.info-section p.note {
+  font-size: 0.9rem;
   opacity: 0.9;
 }
-
-/* Responsive layout */
-/* Medium screens */
-@media (max-width: 1024px) {
-  .info-section {
-    margin: 0.8rem auto;
-  }
+.info-section ul {
+  margin: 0.4rem 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  padding-left: 1.75rem;
 }
-/* Small screens */
+.info-section p.example {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Responsive layout for narrow browser window */
 @media (max-width: 768px) {
   .content {
     flex-direction: column;
