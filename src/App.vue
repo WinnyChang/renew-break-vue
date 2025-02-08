@@ -58,22 +58,27 @@
             {{ notificationPermission ? 'Notifications Enabled' : 'Enable Notifications' }}
           </button>
           <p>Please also <b>allow system notifications</b> from your browser.</p>
-          <p class="note">Windows users: Go to <b>Settings → System → Notifications</b>, under <b>Notifications from apps and other senders</b>, select your browser, turn on notification and make sure <b>Show notification banners</b> is checked for the best experience.</p>
-          <p class="note">MacOS users: Go to <b>System Settings → Notifications</b>, under <b>Application Notifications</b>, select your browser, allow notifications and select <b>Alerts</b> for the best experience.</p>
+          <details>
+            <summary>Show me how</summary>
+            <p class="note">Windows users: Go to <b>Settings → System → Notifications</b>, under <b>Notifications from apps and other senders</b>, select your browser, turn on notification and make sure <b>Show notification banners</b> is checked for the best experience.</p>
+            <p class="note">MacOS users: Go to <b>System Settings → Notifications</b>, under <b>Application Notifications</b>, select your browser, allow notifications and select <b>Alerts</b> for the best experience.</p>
+          </details>
+          <p>Ready to test? Click below:</p>
+          <button @click="sendTestNotification" class="test-btn">Send Test Notification</button>
         </section>
 
         <section>
           <h2>I'd Love Your Feedback!</h2>
           <p>
-            This is the initial public release of my web app, and I'd love to hear your thoughts! Feel free to fill out the feedback form 
-            <a href="https://forms.gle/thmp2eGWhjhP5kur7" target="_blank">here</a>.
+            Thank you for trying out the initial release! Help shape the future of this app by completing this 
+            <a href="https://forms.gle/thmp2eGWhjhP5kur7" target="_blank">brief 9-question feedback form</a>.
           </p>
         </section>
       </div>
     </div>
     <!-- Footer with counter -->
     <footer class="footer">
-      <span>Version 1.0.1</span> ・ <span>Visitors </span>
+      <span>Version 1.1.0</span> ・ <span>Visitors </span>
       <a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/65/1738906000/" alt="visitor-counter"></a>
     </footer>
   </div>
@@ -122,6 +127,30 @@ const requestPermission = async () => {
     }
 };
 
+const testMessages = [
+  "Congrats! Notifications are working!",
+  "恭喜！你已經順利完成系統通知設定囉！",
+  "You're all set! Choose your time settings and tap 'Start' when you're ready.",
+  "一切準備就緒！調整計時器的時間設定，並按 Start 開始倒數吧！",
+  "\"Almost everything will work again if you unplug it for a few minutes, including you.\" – Anne Lamott",
+  "休息就是休息，不是為了走更遠的路。\n – 蔡康永"
+];
+const currentMessageIndex = ref(0);
+const sendTestNotification = () => {
+  if ("Notification" in window && notificationPermission.value) {
+      try {                
+          new Notification("RenewBreak Test Notification", {
+              body: testMessages[currentMessageIndex.value],
+              requireInteraction: true
+          });
+          currentMessageIndex.value = (currentMessageIndex.value + 1) % testMessages.length;
+      } catch (error) {
+          console.error('Notification failed:', error);
+      }
+  } else {
+      alert("Please enable browser notifications first.");
+  }
+};
 
 // Timer control functions
 const startPause = () => {
@@ -188,7 +217,7 @@ onBeforeUnmount(() => {
 }
 
 .info-section section {
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.4rem;
 }
 .info-section h2 {
   margin: 0 0 0.4rem;
@@ -213,6 +242,17 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   opacity: 0.9;
   margin: 0;
+}
+
+.info-section details {
+  margin: 0;
+}
+.info-section details summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+.info-section details summary:hover {
+  color: #a1e3f9;
 }
 
 /* Responsive layout for narrow browser window */
@@ -245,9 +285,12 @@ onBeforeUnmount(() => {
     background-color: #615100;
 }
 
-.notification-btn {
-    width: 250px;
-    margin: 12px 0;
+.notification-btn, .test-btn {
+    width: 220px;
+    margin: 4px 0 8px;
+    padding: 10px;
+    font-size: 1.1rem;
+    font-weight: 500;
     opacity: 1;
     transition: opacity 0.25s ease;
 }
@@ -256,6 +299,19 @@ onBeforeUnmount(() => {
     opacity: 0.6;
     cursor: default;
 }
+/* .info-section button{
+  background: #3d464b;
+  color: white;
+  border: solid 1.5px transparent;
+  border-radius: 8px;
+  font-family: "Nunito", serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+} */
 
 .footer {
   margin-top: auto;  /* Pushes footer to bottom */
