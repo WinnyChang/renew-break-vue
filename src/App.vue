@@ -60,8 +60,19 @@
           <p>Please also <b>allow system notifications</b> from your browser.</p>
           <details>
             <summary>Show me how</summary>
-            <p class="note">Windows users: Go to <b>Settings → System → Notifications</b>, under <b>Notifications from apps and other senders</b>, select your browser, turn on notification and make sure <b>Show notification banners</b> is checked for the best experience.</p>
-            <p class="note">MacOS users: Go to <b>System Settings → Notifications</b>, under <b>Application Notifications</b>, select your browser, allow notifications and select <b>Alerts</b> for the best experience.</p>
+            <p class="note">Windows users: First, click the 'Send Test Notification' button below.
+              If you receive a notification, you're all set! If not, 
+              go to <b>Start → Settings → System → Notifications</b>, 
+              under <b>Notifications from apps and other senders</b>, 
+              select your browser, turn on notification and make sure 
+              <b>Show notification banners</b> is checked for the best experience.
+            </p>
+            <p class="note">MacOS users: Go to <b>System Settings → Notifications</b>, 
+              under <b>Application Notifications</b>, 
+              select your browser, allow notifications and select <b>Alerts</b> for the best experience. 
+              For Google Chrome and Microsoft Edge users: 
+              You'll need to configure the same settings for both the '[Browser]' and '[Browser] Helper (Alerts)' entries.
+            </p>
           </details>
           <p>Ready to test? Click below:</p>
           <button @click="sendTestNotification" class="test-btn">Send Test Notification</button>
@@ -78,7 +89,7 @@
     </div>
     <!-- Footer with counter -->
     <footer class="footer">
-      <span>Version 1.1.0</span> ・ <span>Visitors </span>
+      <span>Version 1.1.1</span> ・ <span>Visitors </span>
       <a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/65/1738906000/" alt="visitor-counter"></a>
     </footer>
   </div>
