@@ -35,7 +35,7 @@ A web-based timer application that helps computer users take regular eye-rest an
   - GitHub Pages
 
 ## Version
-Current version: 1.1.1 (Released: February 9, 2025)
+Current version: 1.1.2 (Released: February 16, 2025)
 
 ## Feedback
 Your feedback is valuable! Please share your thoughts via this [feedback form](https://forms.gle/thmp2eGWhjhP5kur7).

@@ -89,7 +89,7 @@
     </div>
     <!-- Footer with counter -->
     <footer class="footer">
-      <span>Version 1.1.1</span> ・ <span>Visitors </span>
+      <span>Version 1.1.2</span> ・ <span>Visitors </span>
       <a href="https://www.stylemap.co.jp/counter/taiwan/"><img src="https://www.f-counter.net/j/65/1738906000/" alt="visitor-counter"></a>
     </footer>
   </div>
